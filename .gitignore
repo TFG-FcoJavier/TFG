@@ -1,0 +1,12 @@
+# Datasets descargados y otros
+*.tar.gz
+*.rar
+
+# Modelos entrenados
+*.h5
+
+# Imagenes generadas durante el entrenamiento
+*.png
+
+# Datasets 
+/Input/**
