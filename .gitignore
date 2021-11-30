@@ -13,3 +13,4 @@
 
 # Configuracion de otra aplicacion de sincronización
 *.ini
+/Rubish/**
