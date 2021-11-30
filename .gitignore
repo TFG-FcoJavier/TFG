@@ -12,4 +12,4 @@
 /Input/**
 
 # Configuracion de otra aplicacion de sincronización
-desktop.ini
+*.ini
