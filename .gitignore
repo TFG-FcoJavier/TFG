@@ -8,8 +8,11 @@
 # Imagenes generadas durante el entrenamiento
 *.png
 
-# Datasets 
+# Datasets (MEGA)
 /Input/**
+
+#Resultados (MEGA)
+/Resultados/**
 
 # Configuracion de otra aplicacion de sincronización
 *.ini
