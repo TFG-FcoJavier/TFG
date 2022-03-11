@@ -2,6 +2,7 @@
 Este modulo contiene todas las funciones para la creacion, entrenamiento y muestreo de un AAE, incluyendo cada una de las partes y todos los tipos
 """
 
+from math import ceil
 import tensorflow as tf
 from tensorflow import keras
 if __name__=="__main__":
@@ -622,8 +623,11 @@ def fit_AAE_twoPhased(dim_latente:int, aae:tuple, dataset:dict, epochs=12, batch
     truth_kwargs: argumentos para la funcion de la distribucion\n
     falsehood: funcion de toma de muestras con el encoder
     """
+    elements = len(dataset["data"])
+    totalSteps = ceil(elements/batch_size)
+
     dataset = tf.data.Dataset.from_tensor_slices(dataset)
-    dataset = dataset.shuffle(50000, seed=2022)
+    dataset = dataset.shuffle(elements, seed=2022)
     dataset = dataset.batch(batch_size)
 
     history = np.empty([0,4])
@@ -637,7 +641,7 @@ def fit_AAE_twoPhased(dim_latente:int, aae:tuple, dataset:dict, epochs=12, batch
     truth_params.update(truth_kwargs)
 
     for epoch in range(epochs):
-        print("EPOCH %d" % (epoch))
+        print("EPOCH %d:" % (epoch))
         for step, imgs in enumerate(dataset):
             falsehood_params = {"imgs":imgs, "encoder":encoder}
             falsehood_params.update(truth_kwargs)
@@ -659,9 +663,13 @@ def fit_AAE_twoPhased(dim_latente:int, aae:tuple, dataset:dict, epochs=12, batch
             history = np.append(history, [np.append(dis_avg_loss[:2], aae_loss[:2])], axis=0)
             
             # monitorizamos el progreso
-            if ((step+1) % sample_interval)==0 and verbose:
-                print("Epoch: %d Step: %d Disc: (loss = %f, acc = %.2f%%) AAE: (mse = %f, b_ce = %f)" % (epoch, step, dis_avg_loss[0], 100*dis_avg_loss[1], aae_loss[0], aae_loss[1]))
-            # Hacemos una muestra visual
+            if step*((step+1) % sample_interval)==0 and verbose:
+                progressPercent=step/totalSteps
+                bar=ceil(progressPercent*10)
+                print("<"+chr(9608)*bar+" "*(10-bar)+"> %d%% DISC: [loss: %f, acc: %.2f%%] AAE: [mse: %f, b_ce: %f]\t\t" % (ceil(100*progressPercent), dis_avg_loss[0], 100*dis_avg_loss[1], aae_loss[0], aae_loss[1]), end="\r")
+        if verbose:
+            print("")
+        # Hacemos una muestra visual
         generate_samples(dim_latente, decoder, epoch, ruta=ruta, nombre=nombre, show=((epoch+1)==epochs))
     return history.transpose(1,0)
 
