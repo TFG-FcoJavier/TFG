@@ -528,12 +528,17 @@ def exploraLatente(encoder:Model, decoder:Model, groupPath:str, ruta="Resultados
     nombre: nombre descriptivo
     """
     groups = unpickle(groupPath)
+    size = len(groups[0])
+    length = len(groups.keys())
+    f, axxs = plt.subplots(length,size+1)
+    f.set_size_inches(size*2.5, length*1.41)
+    f.suptitle("Latent aproximation from " + groupPath, fontsize=12)
     ruta+="/Output/Latente"
     mkfolders(ruta)
     for key in groups.keys():
         imgs = groups[key]
         latent = []
-        size = len(imgs)
+        
         # Obtencion de coordenadas en espacio latente
         #for i in range(size):
         pred = encoder.predict(imgs)
@@ -545,19 +550,19 @@ def exploraLatente(encoder:Model, decoder:Model, groupPath:str, ruta="Resultados
         #Generamos la imagen de esa coordenada
         generated = decoder.predict(latent)
 
-        f, axxs = plt.subplots(1,size+1)
-        f.suptitle("Latent aproximation for class "+str(key)+" from " + groupPath, fontsize=12)
-        for j in range(size):
-            axxs[j].imshow(imgs[j])
-            axxs[j].axis("off")
-            axxs[j].set_title("Real")
-        axxs[size].imshow(generated[0])
-        axxs[size].axis("off")
-        axxs[size].set_title("Generated")
-        plt.show()
-        plt.close()
         
-        f.savefig(ruta+"\\"+nombre+" label %d.jpg" % (key))
+        for j in range(size):
+            axxs[key][j].imshow(imgs[j])
+            axxs[key][j].axis("off")
+            axxs[key][j].set_title("Real")
+        axxs[key][size].imshow(generated[0])
+        axxs[key][size].axis("off")
+        axxs[key][size].set_title("Generated")
+    
+    plt.show()
+    plt.close()
+        
+    f.savefig(ruta+"\\"+nombre+".jpg")
         
 def plot_history(history:list, ruta="Resultados/pruebasAAE", nombre="pAAE", title=""):
     """
