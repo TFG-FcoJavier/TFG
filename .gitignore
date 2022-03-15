@@ -17,3 +17,7 @@
 # Configuracion de otra aplicacion de sincronización
 *.ini
 /Rubbish/**
+
+# Archivos compilados
+__pycache__/
+*.py[cod]
