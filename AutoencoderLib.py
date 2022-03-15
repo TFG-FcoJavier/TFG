@@ -646,6 +646,8 @@ def fit_AAE_twoPhased(dim_latente:int, aae:tuple, dataset:dict, epochs=12, batch
     truth_params = {"dim_latente":dim_latente, "batch_size":batch_size}
     truth_params.update(truth_kwargs)
 
+    print("Entrenando: "+ruta)
+
     for epoch in range(epochs):
         start = timer()
         for step, imgs in enumerate(dataset):
