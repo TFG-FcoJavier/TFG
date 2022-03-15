@@ -646,7 +646,6 @@ def fit_AAE_twoPhased(dim_latente:int, aae:tuple, dataset:dict, epochs=12, batch
     truth_params.update(truth_kwargs)
 
     for epoch in range(epochs):
-        print("EPOCH %d:" % (epoch))
         for step, imgs in enumerate(dataset):
             falsehood_params = {"imgs":imgs, "encoder":encoder}
             falsehood_params.update(truth_kwargs)
@@ -671,7 +670,7 @@ def fit_AAE_twoPhased(dim_latente:int, aae:tuple, dataset:dict, epochs=12, batch
             if step*((step+1) % sample_interval)==0 and verbose:
                 progressPercent=step/totalSteps
                 bar=ceil(progressPercent*10)
-                print("<"+chr(9608)*bar+" "*(10-bar)+"> %d%% DISC: [loss: %f, acc: %.2f%%] AAE: [mse: %f, b_ce: %f]\t\t" % (ceil(100*progressPercent), dis_avg_loss[0], 100*dis_avg_loss[1], aae_loss[0], aae_loss[1]), end="\r")
+                print("E%d <" % (epoch)+chr(9608)*bar+" "*(10-bar)+"> %d%% DISC: [loss: %f, acc: %.2f%%] AAE: [mse: %f, b_ce: %f]\t\t" % (ceil(100*progressPercent), dis_avg_loss[0], 100*dis_avg_loss[1], aae_loss[0], aae_loss[1]), end="\r")
         if verbose:
             print("")
         # Hacemos una muestra visual
