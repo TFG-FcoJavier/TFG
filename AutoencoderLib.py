@@ -16,6 +16,7 @@ from keras.layers import Input, Dense, Conv2D, Flatten, LeakyReLU, MaxPooling2D,
 import numpy as np
 import matplotlib.pyplot as plt
 from IPython.display import Image, display
+from timeit import default_timer as timer
 
 from utilities import unpickle, mkfolders
 
@@ -646,6 +647,7 @@ def fit_AAE_twoPhased(dim_latente:int, aae:tuple, dataset:dict, epochs=12, batch
     truth_params.update(truth_kwargs)
 
     for epoch in range(epochs):
+        start = timer()
         for step, imgs in enumerate(dataset):
             falsehood_params = {"imgs":imgs, "encoder":encoder}
             falsehood_params.update(truth_kwargs)
@@ -670,7 +672,8 @@ def fit_AAE_twoPhased(dim_latente:int, aae:tuple, dataset:dict, epochs=12, batch
             if step*((step+1) % sample_interval)==0 and verbose:
                 progressPercent=step/totalSteps
                 bar=ceil(progressPercent*10)
-                print("E%d <" % (epoch)+chr(9608)*bar+" "*(10-bar)+"> %d%% DISC: [loss: %f, acc: %.2f%%] AAE: [mse: %f, b_ce: %f]\t\t" % (ceil(100*progressPercent), dis_avg_loss[0], 100*dis_avg_loss[1], aae_loss[0], aae_loss[1]), end="\r")
+                elapsed = timer() - start
+                print("E%d <" % (epoch)+chr(9608)*bar+" "*(10-bar)+"> %d%% DISC: [loss: %f, acc: %.2f%%] AAE: [mse: %f, b_ce: %f] %.2fs\t\t" % (ceil(100*progressPercent), dis_avg_loss[0], 100*dis_avg_loss[1], aae_loss[0], aae_loss[1], elapsed), end="\r")
         if verbose:
             print("")
         # Hacemos una muestra visual
