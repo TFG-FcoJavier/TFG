@@ -398,7 +398,7 @@ def fake_sampler(imgs:np.ndarray, encoder:Model) -> np.ndarray:
     latent_fake = encoder.predict(imgs["data"])
     return latent_fake
 
-def fake_class_sampler(imgs, encoder, nclases):
+def fake_class_sampler(imgs, encoder, nclases, **kwargs):
     """
     Devuelve uan tupla con los ejemplos de coordenadas del espacio latente generados por el decodificador y su etiqueta en formato onehot.\n
     imgs: array de imagenes a codificar\n
