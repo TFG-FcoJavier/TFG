@@ -378,7 +378,8 @@ def assemble_AAE_threePhased(
     # el encoder toma un imagen y la codifica y el decoder toma la codificacion e intenta regenerar la imagen
     img = Input(shape=img_shape, name="data")
     encoded = encoder(img)
-    autoencoder = decoder(encoded)
+    reconstructed = decoder(encoded)
+    autoencoder = Model(img, reconstructed)
     autoencoder.compile(loss=cp["ae_loss"], optimizer=cp["optimizer"])
 
     # para la distribucion del encoder solo queremos entrenar el generador, no el discriminador
@@ -492,7 +493,9 @@ def sample_imgs(dataset:dict, model:Model, epoch:int, nclases:int, sample_size=5
     else:
         model_input=sample
     # Intentamos regenerar las imagenes
-    gen_img = model.predict(model_input)[0]
+    gen_img = model.predict(model_input)
+    if len(gen_img.shape)==5:
+        gen_img=gen_img[0]
     # Guardamos una grafica con la muestra (arriba) y las imagenes generadas (abajo)
     f, axxs = plt.subplots(2,sample_size)
     if title!="":
@@ -786,20 +789,20 @@ def fit_AAE_threePhased(dim_latente:int, aae:tuple, dataset:dict, epochs=12, bat
             # entrenamos al regenerador
             if "nclases" in truth_kwargs:
                 imgs["labels"]=onehotify(imgs["labels"], truth_kwargs["nclases"])
-            ae_loss = autoencoder.train_on_batch(imgs, imgs) 
+            ae_loss = autoencoder.train_on_batch(imgs, imgs["data"]) 
             
             # Entrenamos el generador, la idea es que el encoder genere "imagenes validas"
             ed_loss=encoscriminador.train_on_batch(imgs, valid)
 
             # Guardamos el progreso
-            history = np.append(history, [np.append(dis_avg_loss[:2], ae_loss, ed_loss[1])], axis=0)
+            history = np.append(history, [np.append(dis_avg_loss[:2], [ae_loss, ed_loss[1]])], axis=0)
             
             # monitorizamos el progreso
             if step*((step+1) % sample_interval)==0 and verbose:
                 progressPercent=step/totalSteps
                 bar=ceil(progressPercent*10)
                 elapsed = timer() - start
-                print("E%d <" % (epoch)+chr(9608)*bar+" "*(10-bar)+"> %d%% DISC: [loss: %f, acc: %.2f%%] AE: [loss: %f] EN-DI [acc: %.2f%%] %.2fs\t\t" % (ceil(100*progressPercent), dis_avg_loss[0], 100*dis_avg_loss[1], ae_loss, ed_loss[1], elapsed), end="\r")
+                print("E%d <" % (epoch)+chr(9608)*bar+" "*(10-bar)+"> %d%% DISC: [loss: %f, acc: %.2f%%] AE: [loss: %f] EN-DI [acc: %.2f%%] %.2fs\t\t" % (ceil(100*progressPercent), dis_avg_loss[0], 100*dis_avg_loss[1], ae_loss, 100*ed_loss[1], elapsed), end="\r")
         if verbose:
             print("")
         # Hacemos una muestra visual
