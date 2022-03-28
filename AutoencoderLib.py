@@ -802,7 +802,6 @@ def fit_AAE_threePhased(dim_latente:int, aae:tuple, dataset:dict, epochs=12, bat
             ed_loss=encoscriminador.train_on_batch(imgs, valid)
 
             # Guardamos el progreso
-            history = np.append(history, [np.append(dis_avg_loss[:2], [ae_loss, ed_loss[1]])], axis=0)
             history["loss"]["discriminador"]=np.append(history["loss"]["discriminador"],dis_avg_loss[0])
             history["loss"]["autoencoder"]=np.append(history["loss"]["autoencoder"],ae_loss)
             history["loss"]["encoder+discr"]=np.append(history["loss"]["encoder+discr"],ed_loss[0])
