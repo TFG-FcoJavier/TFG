@@ -623,7 +623,7 @@ def exploraLatente(encoder:Model, decoder:Model, groupPath:str, ruta="Resultados
         
     f.savefig(ruta+"\\"+nombre+".jpg")
         
-def plot_history(history:list, ruta="Resultados/pruebasAAE", nombre="pAAE", title=""):
+def plot_history(history:dict, ruta="Resultados/pruebasAAE", nombre="pAAE", title=""):
     """
     Crea una grafica con el historial de losses y accuracy de los modelos durante el entrenamiento.\n
     history: salida de la funcion de entrenamiento\n
@@ -631,35 +631,22 @@ def plot_history(history:list, ruta="Resultados/pruebasAAE", nombre="pAAE", titl
     nombre: nombre descriptivo\n
     title=titulo de la grafica
     """
-    disc_loss = history[0]
-    disc_acc  = history[1]
-    aac_loss1 = history[2]
-    aac_loss2 = history[3]
+    metricas = history.keys()
+    len_m = len(metricas)
 
-    fig, axxs = plt.subplots(1,3)
+    fig, axxs = plt.subplots(1, len_m)
     if title != "":
         fig.suptitle(title, fontsize=16)
 
-    fig.set_figwidth(24)
+    fig.set_figwidth(8*len_m)
     fig.set_figheight(6)
 
-    axxs[0].set_title("Discriminator")
-    axxs[1].set_title("Discriminator")
-    axxs[2].set_title("AdversarialAutoencoder")
-
-    axxs[0].set_xlabel("Epoch")
-    axxs[1].set_xlabel("Epoch")
-    axxs[2].set_xlabel("Epoch")
-
-    axxs[0].plot(disc_loss, label = "Loss")
-    axxs[1].plot(disc_acc, label = "Accuracy")
-
-    axxs[2].plot(aac_loss1, label = "Loss_decoder")
-    axxs[2].plot(aac_loss2, label = "Loss_discriminator")
-
-    axxs[0].legend()
-    axxs[1].legend()
-    axxs[2].legend()
+    for i, metrica in enumerate(metricas):
+        axxs[i].set_title(metrica)
+        axxs[i].set_xlabel("Epoch")
+        for modelo, datos in history[metrica].items():
+            axxs[i].plot(datos, label = modelo)
+        axxs[i].legend()
 
     fig.savefig(ruta+"\\"+nombre+"progresscifar10_plot.jpg")
     plt.show()
@@ -670,7 +657,7 @@ def plot_history(history:list, ruta="Resultados/pruebasAAE", nombre="pAAE", titl
 # -----------------------------------------------------------
 
 def fit_AAE_twoPhased(dim_latente:int, aae:tuple, dataset:dict, epochs=12, batch_size=100, sample_interval=100, ruta="Resultados/pruebasAAE", nombre="pAAE", verbose=True,
-            truth=true_sampler, truth_kwargs={}, falsehood=fake_sampler):
+            truth=true_sampler, truth_kwargs={}, falsehood=fake_sampler) -> dict:
     """
     Entrenamiento en dos fases, devuelve historial de entrenamiento. 1-Discriminador 2-Autoencoder. 
     En la fase dos se entrenan al mismo tiempo la regeneracion de las imagenes y el ajuste del espacio latente a la distribucion en la que se haya entrenado el discriminador.\n
@@ -694,7 +681,14 @@ def fit_AAE_twoPhased(dim_latente:int, aae:tuple, dataset:dict, epochs=12, batch
     dataset = dataset.shuffle(elements, seed=2022)
     dataset = dataset.batch(batch_size)
 
-    history = np.empty([0,4])
+    history = {
+        "loss":{
+            "discriminador": np.array([]),
+            "AAE_Discrim": np.array([]),
+            "AAE_Decoder": np.array([])
+            }, 
+        "accuracy":{"discriminador": np.array([])}
+        }
 
     encoder, decoder, discriminator, a_autoencoder=aae
     
@@ -725,8 +719,11 @@ def fit_AAE_twoPhased(dim_latente:int, aae:tuple, dataset:dict, epochs=12, batch
                 imgs["labels"]=onehotify(imgs["labels"], truth_kwargs["nclases"])
             aae_loss = a_autoencoder.train_on_batch(imgs,[imgs["data"], valid]) # El resultado debe ser la imagen sin las etiquetas
             
-            # Guardamos el progreso
-            history = np.append(history, [np.append(dis_avg_loss[:2], aae_loss[:2])], axis=0)
+            # Guardamos el progreso            
+            history["loss"]["discriminador"]=np.append(history["loss"]["discriminador"],dis_avg_loss[0])
+            history["loss"]["AAE_Discrim"]=np.append(history["loss"]["AAE_Discrim"],aae_loss[0])
+            history["loss"]["AAE_Decoder"]=np.append(history["loss"]["AAE_Decoder"],aae_loss[1])
+            history["accuracy"]["discriminador"]=np.append(history["accuracy"]["discriminador"],dis_avg_loss[1])
             
             # monitorizamos el progreso
             if step*((step+1) % sample_interval)==0 and verbose:
@@ -738,10 +735,10 @@ def fit_AAE_twoPhased(dim_latente:int, aae:tuple, dataset:dict, epochs=12, batch
             print("")
         # Hacemos una muestra visual
         generate_samples(dim_latente, decoder, epoch, ruta=ruta, nombre=nombre, show=((epoch+1)==epochs))
-    return history.transpose(1,0)
+    return history
 
 def fit_AAE_threePhased(dim_latente:int, aae:tuple, dataset:dict, epochs=12, batch_size=100, sample_interval=100, ruta="Resultados/pruebasAAE", nombre="pAAE", verbose=True,
-            truth=true_sampler, truth_kwargs={}, falsehood=fake_sampler):
+            truth=true_sampler, truth_kwargs={}, falsehood=fake_sampler) -> dict:
     """
     Entrenamiento en dos fases, devuelve historial de entrenamiento. 1-Discriminador 2-Autoencoder. 
     En la fase dos se entrenan al mismo tiempo la regeneracion de las imagenes y el ajuste del espacio latente a la distribucion en la que se haya entrenado el discriminador.\n
@@ -765,7 +762,17 @@ def fit_AAE_threePhased(dim_latente:int, aae:tuple, dataset:dict, epochs=12, bat
     dataset = dataset.shuffle(elements, seed=2022)
     dataset = dataset.batch(batch_size)
 
-    history = np.empty([0,4])
+    history = {
+        "loss":{
+            "discriminador": np.array([]),
+            "autoencoder": np.array([]),
+            "encoder+discr": np.array([])
+            }, 
+        "accuracy":{
+            "discriminador": np.array([]),
+            "encoder+discr": np.array([])
+            }
+        }
 
     encoder, decoder, discriminator, autoencoder, encoscriminador=aae
     
@@ -796,6 +803,11 @@ def fit_AAE_threePhased(dim_latente:int, aae:tuple, dataset:dict, epochs=12, bat
 
             # Guardamos el progreso
             history = np.append(history, [np.append(dis_avg_loss[:2], [ae_loss, ed_loss[1]])], axis=0)
+            history["loss"]["discriminador"]=np.append(history["loss"]["discriminador"],dis_avg_loss[0])
+            history["loss"]["autoencoder"]=np.append(history["loss"]["autoencoder"],ae_loss)
+            history["loss"]["encoder+discr"]=np.append(history["loss"]["encoder+discr"],ed_loss[0])
+            history["accuracy"]["discriminador"]=np.append(history["accuracy"]["discriminador"],dis_avg_loss[1])
+            history["accuracy"]["encoder+discr"]=np.append(history["accuracy"]["encoder+discr"],ed_loss[1])
             
             # monitorizamos el progreso
             if step*((step+1) % sample_interval)==0 and verbose:
@@ -808,4 +820,4 @@ def fit_AAE_threePhased(dim_latente:int, aae:tuple, dataset:dict, epochs=12, bat
         # Hacemos una muestra visual
         generate_samples(dim_latente, decoder, epoch, ruta=ruta, nombre=nombre, show=((epoch+1)==epochs))
     
-    return history.transpose(1,0)
+    return history
