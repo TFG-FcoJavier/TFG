@@ -494,7 +494,7 @@ def sample_imgs(dataset:dict, model:Model, epoch:int, nclases:int, sample_size=5
         model_input=sample
     # Intentamos regenerar las imagenes
     gen_img = model.predict(model_input)
-    if len(gen_img.shape)==5:
+    if type(gen_img) is list:
         gen_img=gen_img[0]
     # Guardamos una grafica con la muestra (arriba) y las imagenes generadas (abajo)
     f, axxs = plt.subplots(2,sample_size)
