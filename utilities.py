@@ -37,3 +37,37 @@ def tryDataset(dataset):
         a.axis("off")
     plt.show()
     plt.close()
+
+def compute_mixture(dataset, encoder, points = None, override=False, ruta="Data/", nombre="mixtureData", dataset_name=""):
+    exists=os.path.isfile(ruta+"/"+nombre)
+    
+    if exists and not override:
+        return load_mixture(ruta=ruta, nombre=nombre)
+    
+    if points is None:
+        points = encoder.predict(dataset["data"])
+        
+    mixture = {}
+    for i, label in enumerate(dataset["labels"]):
+        if label in mixture.keys():
+            mixture[label].append(points[i])
+        else:
+            mixture[label]= [points[i]]
+    for index in mixture.keys():
+        cluster = mixture[index]
+        mixture[index] = {"mu":[], "sigma":[]}
+        mixture[index]["mu"]=np.median(cluster, axis=0)
+        mixture[index]["sigma"]=np.std(cluster, axis=0)
+        
+    if not exists or override:    
+        print("Guardando datos de la mixtura para "+dataset_name+"-"+nombre)
+        mkfolders(ruta=ruta)
+        saveDataset(dataset=mixture, input_path=ruta, dataset_name=dataset_name, name=nombre)
+        
+    return mixture
+    
+def load_mixture(ruta="Data/", nombre="mixtureData", dataset_name="", expansion=1, **kwargs):
+    mixture = unpickle(ruta+dataset_name+"-"+nombre)
+    for v in mixture.values():
+        v["mu"] = np.multiply(v["mu"], expansion)
+    return mixture

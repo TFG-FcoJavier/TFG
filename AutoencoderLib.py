@@ -445,6 +445,23 @@ def true_sampler_clases(dim_latente:int, batch_size:int, nclases:int):
         samples.append(s)
     return np.array(samples), clases1hot
 
+def genFromMixture(dim_latente, batch_size, nclases, mixture):
+    """
+    Devuelve un array de numpy que contiene ejemplos de coordenadas del espacio latente, cada una pertenecientes a una distribucion normal distinta dependiendo de su etiqueta.
+    Estas distribuciones se basan em los datos de una mixtura generados con antelacion.\n
+    dim_latente: tamaño de los ejemplos\n
+    batch_size: numero de ejemplos\n
+    nclases: numero de etiquetas posible\n
+    mixture: diccionario mixtura
+    """
+    samples = []
+    clases = np.random.randint(0, nclases, batch_size)
+    clases1hot= onehotify(clases, nclases)
+    for clase in clases: 
+        s = np.random.normal(loc = mixture[clase]["mu"], scale=mixture[clase]["sigma"], size=dim_latente)
+        samples.append(s)
+    return np.array(samples), clases1hot
+
 def fake_sampler(imgs:np.ndarray, encoder:Model) -> np.ndarray:
     """
     Devuelve los ejemplos de coordenadas del espacio latente generados por el decodificador.\n
