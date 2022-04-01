@@ -39,10 +39,10 @@ def tryDataset(dataset):
     plt.close()
 
 def compute_mixture(dataset, encoder, points = None, override=False, ruta="Data/", nombre="mixtureData", dataset_name=""):
-    exists=os.path.isfile(ruta+"/"+nombre)
+    exists=os.path.isfile(ruta+dataset_name+"-"+nombre)
     
     if exists and not override:
-        return load_mixture(ruta=ruta, nombre=nombre)
+        return load_mixture(ruta=ruta, nombre=nombre, dataset_name=dataset_name)
     
     if points is None:
         points = encoder.predict(dataset["data"])
@@ -62,8 +62,7 @@ def compute_mixture(dataset, encoder, points = None, override=False, ruta="Data/
     if not exists or override:    
         print("Guardando datos de la mixtura para "+dataset_name+"-"+nombre)
         mkfolders(ruta=ruta)
-        saveDataset(dataset=mixture, input_path=ruta, dataset_name=dataset_name, name=nombre)
-        
+        pickle.dump(mixture, open(ruta+dataset_name+"-"+nombre, "wb"))
     return mixture
     
 def load_mixture(ruta="Data/", nombre="mixtureData", dataset_name="", expansion=1, **kwargs):
