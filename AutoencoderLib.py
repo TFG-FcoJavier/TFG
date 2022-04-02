@@ -398,7 +398,7 @@ def assemble_AAE_threePhased(
 
     # Encoder-discriminador adversario 
     encosriminator = keras.Model(enc_input, validez)
-    encosriminator.compile(optimizer=cp["optimizer"], loss='binary_crossentropy', metrics=['accuracy'])
+    encosriminator.compile(optimizer=cp["optimizer"], loss=cp["disc_loss"], metrics=['accuracy'])
 
     return (encoder, decoder, discriminator, autoencoder, encosriminator)
 
