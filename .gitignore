@@ -21,6 +21,3 @@
 # Archivos compilados
 __pycache__/
 *.py[cod]
-
-# Datos generados durante el entrenamiento
-Data/
