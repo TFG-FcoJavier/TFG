@@ -134,7 +134,7 @@ def build_dense_decoder(dim_latente:int, img_shape:tuple, depth=2, width=1000) -
 # -----------------------------------------------------------
 # COMPONENTES PARA UNA RED CONVOLUCIONAL
 # -----------------------------------------------------------
-def build_conv_encoder(dim_latente:int, img_shape:tuple, depth=2) -> Model:
+def build_conv_encoder(dim_latente:int, img_shape:tuple, depth=2, filter = 32) -> Model:
     """
     Encoder convolucional. Comienza con 8 filtros de (3,3) y cada capa duplica el numero de filtros\n
     dim_latente: tamaño del output\n
@@ -142,7 +142,6 @@ def build_conv_encoder(dim_latente:int, img_shape:tuple, depth=2) -> Model:
     depth: numero de capas ocultas\n
     """
     model =  keras.Sequential()
-    filter = 8
     model.add(Conv2D(filter, (3,3), padding="same", activation="relu", input_shape=img_shape))
     model.add(MaxPooling2D())
     for _ in range(depth-1):
@@ -154,7 +153,7 @@ def build_conv_encoder(dim_latente:int, img_shape:tuple, depth=2) -> Model:
     
     return model
 
-def build_conv_decoder(dim_latente:int, img_shape:tuple, depth=2) -> Model:
+def build_conv_decoder(dim_latente:int, img_shape:tuple, depth=2, filter = 32) -> Model:
     """
     Decoder convolucional. Infiere las convoluciones de las capas asumiendo que la ultima convolucoion tiene 8 filtros de (3,3)\n
     dim_latente: tamaño del input\n
@@ -162,7 +161,7 @@ def build_conv_decoder(dim_latente:int, img_shape:tuple, depth=2) -> Model:
     depth: numero de capas ocultas\n
     """
     startLayer = list(int(np.floor(d/(2**depth))) for d in img_shape)
-    filter = 8 * (2 ** (depth-1))
+    filter *=(2 ** (depth-1))
     startLayer[-1] = filter
     startLayer = tuple(startLayer) 
 
@@ -245,7 +244,6 @@ def build_class_discriminator(dim_latente, clases, depth = 2, width=1000) -> Mod
     model.add(Dense(1, activation=keras.activations.sigmoid))
     output = model(concated_input)
     return keras.Model([latent_input, class_input], output)
-    
 
 # https://www.pyimagesearch.com/2019/02/04/keras-multiple-inputs-and-mixed-data/
 def build_branched_class_discriminator(dim_latente:int, clases:int, depth = 2, width=1000) -> Model:
