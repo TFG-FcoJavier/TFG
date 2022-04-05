@@ -736,8 +736,8 @@ def fit_AAE_twoPhased(dim_latente:int, aae:tuple, dataset:dict, epochs=12, batch
             
             # Guardamos el progreso            
             history["loss"]["discriminador"]=np.append(history["loss"]["discriminador"],dis_avg_loss[0])
-            history["loss"]["AAE_Discrim"]=np.append(history["loss"]["AAE_Discrim"],aae_loss[0])
-            history["loss"]["AAE_Decoder"]=np.append(history["loss"]["AAE_Decoder"],aae_loss[1])
+            history["loss"]["AAE_Discrim"]=np.append(history["loss"]["AAE_Discrim"],aae_loss[1])
+            history["loss"]["AAE_Decoder"]=np.append(history["loss"]["AAE_Decoder"],aae_loss[0])
             history["accuracy"]["discriminador"]=np.append(history["accuracy"]["discriminador"],dis_avg_loss[1])
             
             # monitorizamos el progreso
