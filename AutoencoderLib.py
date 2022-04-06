@@ -285,7 +285,7 @@ def build_branched_class_discriminator(dim_latente:int, clases:int, depth = 2, w
 # -----------------------------------------------------------
 
 def assemble_AAE_twoPhased(dim_latente:int, img_shape:tuple, enc_model:Model=build_dense_encoder, dec_model:Model=build_dense_decoder, disc_model:Model = build_discriminator, 
-                compilation_kwargs:dict={}, enc_kwargs:dict={}, dec_kwargs:dict={}, disc_kwargs:dict={}) -> tuple:
+                compilation_kwargs:dict={}, enc_kwargs:dict={}, dec_kwargs:dict={}, disc_kwargs:dict={}, loss_weights=[1, 1]) -> tuple:
     """
     Metodo para la construccion. Devuelve una tupla con los modelos del encoder, decoder, discriminador y autoencoder adversario en ese orden.\n
     dim_latente: dimensiones del espacio latente \n
@@ -341,7 +341,7 @@ def assemble_AAE_twoPhased(dim_latente:int, img_shape:tuple, enc_model:Model=bui
 
     # Autoencoder adversario 
     a_autoencoder = keras.Model(aae_input, [reconstructed, validez])
-    a_autoencoder.compile(loss=[cp["ae_loss"], cp["disc_loss"]], optimizer=cp["optimizer"])#, loss_weights=[0.999, 0.001])
+    a_autoencoder.compile(loss=[cp["ae_loss"], cp["disc_loss"]], optimizer=cp["optimizer"], loss_weights=loss_weights)
     return (encoder, decoder, discriminator, a_autoencoder)
 
 def assemble_AAE_threePhased(
