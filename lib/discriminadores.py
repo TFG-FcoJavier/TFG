@@ -8,6 +8,7 @@ import keras
 
 from keras import Model, Sequential
 from keras.layers import Dense, LeakyReLU, Input
+from misc import pyramid_rule
 
 def build_discriminator(dim_latente:int, depth = 2, width=1000) -> Model:
     """
@@ -17,6 +18,24 @@ def build_discriminator(dim_latente:int, depth = 2, width=1000) -> Model:
     width: numero de neuronas de las capas ocultas
     """
     layer_sizes=list(width for _ in range(depth))
+    model = Sequential()
+    model.add(Dense(layer_sizes[0], input_dim=dim_latente))
+    model.add(LeakyReLU(alpha=0.2))
+    for i in range(1, depth):
+        model.add(Dense(layer_sizes[i]))
+        model.add(LeakyReLU(alpha=0.2))
+    model.add(Dense(1, activation=keras.activations.sigmoid))
+    encoded = Input(shape=dim_latente)
+    valid = model(encoded)
+    return keras.Model(encoded, valid)
+
+def build_discriminator_P(dim_latente:int, depth = 2):
+    """
+    Discriminador basado en la regla de la piramide. Predice si una coordenada en el espacio latente pertenece a una imagen real o no\n
+    dim_latente: tamaño del output\n
+    depth: numero de capas ocultas
+    """
+    layer_sizes=pyramid_rule(h_layers=depth, input_size=dim_latente, output_size=1)
     model = Sequential()
     model.add(Dense(layer_sizes[0], input_dim=dim_latente))
     model.add(LeakyReLU(alpha=0.2))
