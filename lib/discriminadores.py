@@ -8,7 +8,7 @@ import keras
 
 from keras import Model, Sequential
 from keras.layers import Dense, LeakyReLU, Input
-from misc import pyramid_rule
+from lib.misc import pyramid_rule
 
 def build_discriminator(dim_latente:int, depth = 2, width=1000) -> Model:
     """

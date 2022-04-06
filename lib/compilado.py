@@ -1,15 +1,16 @@
 """
 COMPILADO DE MODELOS
 """
+import tensorflow as tf
 import keras
 from keras.layers import Input
 from keras import Model
 from keras import losses
 
-from densa import build_dense_decoder, build_dense_encoder
-from discriminadores import build_discriminator
+from lib.densa import build_dense_decoder, build_dense_encoder
+from lib.discriminadores import build_discriminator
 
-def assemble_AAE_twoPhased(dim_latente:int, img_shape:tuple, enc_model:Model=build_dense_encoder, enc_kwargs:dict={}, dec_model:Model=build_dense_decoder, dec_kwargs:dict={}, disc_model:Model = build_discriminator, disc_kwargs:dict={}, ae_loss=losses.mean_squared_error, disc_loss= losses.binary_crossentropy, optimizer = keras.optimizers.Adam(0.0002, 0.5), loss_weights=[1, 1]) -> tuple:
+def assemble_AAE_twoPhased(dim_latente:int, img_shape:tuple, enc_model:Model=build_dense_encoder, enc_kwargs:dict={}, dec_model:Model=build_dense_decoder, dec_kwargs:dict={}, disc_model:Model = build_discriminator, disc_kwargs:dict={}, ae_loss=losses.mean_squared_error, disc_loss= losses.binary_crossentropy, optimizer = tf.keras.optimizers.Adam(0.0002, 0.5), loss_weights=[1, 1]) -> tuple:
     """
     Metodo para la construccion. Devuelve una tupla con los modelos del encoder, decoder, discriminador y autoencoder adversario en ese orden.\n
     dim_latente: dimensiones del espacio latente \n

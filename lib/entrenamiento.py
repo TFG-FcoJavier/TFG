@@ -8,8 +8,8 @@ import numpy as np
 from math import ceil
 from timeit import default_timer as timer
 
-from genEJ import *
-from muestreo import generate_samples
+from lib.genEJ import *
+from lib.muestreo import generate_samples
 
 def fit_AAE_twoPhased(dim_latente:int, aae:tuple, dataset:dict, epochs=12, batch_size=100, sample_interval=100, ruta="Resultados/pruebasAAE", nombre="pAAE", verbose=True,
             truth=true_sampler, truth_kwargs={}, falsehood=fake_sampler) -> dict:

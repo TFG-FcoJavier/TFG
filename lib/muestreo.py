@@ -9,8 +9,8 @@ import matplotlib.pyplot as plt
 from keras import Model
 from IPython. display import Image, display
 
-from utilities import mkfolders, unpickle
-from genEJ import onehotify, true_sampler
+from lib.utilities import mkfolders, unpickle
+from lib.genEJ import onehotify, true_sampler
 
 
 def sample_imgs(dataset:dict, model:Model, epoch:int, nclases:int, sample_size=5, save_imgs=True, show=False, ruta="Resultados/pruebasAAE", nombre="", title=""):

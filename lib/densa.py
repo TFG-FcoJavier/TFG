@@ -6,7 +6,7 @@ import numpy as np
 
 from keras import Model
 from keras.layers import Dense, LeakyReLU, Flatten, Reshape
-from misc import pyramid_rule
+from lib.misc import pyramid_rule
 
 
 def build_dense_encoder_P(dim_latente:int, img_shape:tuple, depth=2) -> Model:
