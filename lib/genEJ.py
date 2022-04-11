@@ -3,6 +3,7 @@ GENERACION DE EJEMPLOS
 """
 
 import numpy as np
+import numpy.random as random
 from keras import Model
 
 def true_sampler(dim_latente:int, batch_size:int) -> np.ndarray:
@@ -60,6 +61,34 @@ def genFromMixture(dim_latente, batch_size, nclases, mixture):
         s = np.random.normal(loc = mixture[clase]["mu"], scale=mixture[clase]["sigma"], size=dim_latente)
         samples.append(s)
     return np.array(samples), clases1hot
+
+def true_multivariate_sampler(dim_latente, batch_size, nclases, center_margin=(0,0), cov_chance=0.8, **kwargs):
+    samples = []
+    clases = random.randint(0, nclases, batch_size)
+    clases1hot= onehotify(clases, nclases)
+
+    mus = []
+    covMatrixes = []
+    for i in range(nclases):
+        # Reproducible random state para cada etiqueta
+        generator = random.default_rng(i)
+        # Centro de la distribucion
+        mu = generator.random(dim_latente)
+        mu = [(20 * i) -10 for i in mu]
+        mus.append(mu)
+        # Matriz de covarianza
+        covMatrix = np.zeros((dim_latente, dim_latente))
+        diag = generator.random(dim_latente)
+        diag = [1 if i <cov_chance else .2 for i in diag]
+        np.fill_diagonal(covMatrix, diag)
+        covMatrixes.append(covMatrix)
+
+    for label in clases:
+        # Genera la muestra para el ejemplo con esa etiqueta
+        samples.append(random.multivariate_normal(mus[label], covMatrixes[label]))
+
+    return np.array(samples), clases1hot
+
 
 def fake_sampler(imgs:np.ndarray, encoder:Model) -> np.ndarray:
     """
