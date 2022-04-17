@@ -5,6 +5,7 @@ GENERACION DE EJEMPLOS
 import numpy as np
 import numpy.random as random
 from keras import Model
+from math import floor
 
 def true_sampler(dim_latente:int, batch_size:int) -> np.ndarray:
     """
@@ -89,6 +90,79 @@ def true_multivariate_sampler(dim_latente, batch_size, nclases, center_margin=(0
 
     return np.array(samples), clases1hot
 
+try:
+    import tensorflow_probability as tfp
+    tfd = tfp.distributions
+    def true_multivariate_sampler_tf(dim_latente, batch_size, nclases, cov_chance=0.8, **kwargs):
+
+        sPerC = floor(batch_size/nclases)
+        samples = None
+        clases = np.array([])
+
+        for i in range(nclases):
+            # Reproducible random state para cada etiqueta
+            generator = random.default_rng(i)
+            # Centro de la distribucion
+            mu = generator.random(dim_latente)
+            mu = [(20 * i) -10 for i in mu]
+
+            # Matriz de covarianza
+            #covMatrix = np.zeros((dim_latente, dim_latente))
+            diag = generator.random(dim_latente)
+            diag = [1 if i <cov_chance else .2 for i in diag]
+            #np.fill_diagonal(covMatrix, diag)
+
+            # Representacion de la normal
+            mvn = tfd.MultivariateNormalDiag(
+                loc=mu,
+                scale_diag=diag)
+
+            # Muestras
+            #s=random.multivariate_normal(mu, covMatrix, size=sPerC)
+            s= mvn.sample(sample_shape=(sPerC))
+            if samples is None:
+                samples=s
+            else:
+                samples=np.append(samples, s, axis=0)
+            clases=np.append(clases, np.ones(sPerC)*i)
+            
+        random.default_rng(2022).shuffle(samples)
+        random.default_rng(2022).shuffle(clases)
+
+        return samples, onehotify(clases.astype(int), nclases)
+except Exception as e:
+    print(e)
+    print("Instala la libreria de tensorflow_probability para acelerar la generacion de muestras de la multivariada")
+    def true_multivariate_sampler_tf(dim_latente, batch_size, nclases, cov_chance=0.8, **kwargs):
+
+        sPerC = floor(batch_size/nclases)
+        samples = None
+        clases = np.array([])
+
+        for i in range(nclases):
+            # Reproducible random state para cada etiqueta
+            generator = random.default_rng(i)
+            # Centro de la distribucion
+            mu = generator.random(dim_latente)
+            mu = [(20 * i) -10 for i in mu]
+
+            # Matriz de covarianza
+            covMatrix = np.zeros((dim_latente, dim_latente))
+            diag = generator.random(dim_latente)
+            diag = [1 if i <cov_chance else .2 for i in diag]
+            np.fill_diagonal(covMatrix, diag)
+
+            # Muestras
+            s=random.multivariate_normal(mu, covMatrix, size=sPerC)
+            if samples is None:
+                samples=s
+            else:
+                samples=np.append(samples, s, axis=0)
+            clases=np.append(clases, np.ones(sPerC)*i)
+            
+        random.default_rng(2022).shuffle(samples)
+        random.default_rng(2022).shuffle(clases)
+        return samples, onehotify(clases.astype(int), nclases)
 
 def fake_sampler(imgs:np.ndarray, encoder:Model) -> np.ndarray:
     """
