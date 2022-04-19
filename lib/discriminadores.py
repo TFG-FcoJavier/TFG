@@ -71,6 +71,29 @@ def build_class_discriminator(dim_latente, clases, depth = 2, width=1000) -> Mod
     output = model(concated_input)
     return keras.Model([latent_input, class_input], output)
 
+    # https://www.pyimagesearch.com/2019/02/04/keras-multiple-inputs-and-mixed-data/
+def build_class_discriminator_P(dim_latente, clases, depth = 2) -> Model:
+    """
+    Discriminador de clases, basado en la regla de la piramide. Introduce informacion sobre la etiqueta a la que pertenece la imagen.\n
+    Las etiquetas y la coordenada latente se combinan en un input\n
+    dim_latente: tamaño del output\nç
+    clases: numero de etiquetas posibles para el conjunto de los datos\n
+    depth: numero de capas ocultas
+    """
+    layer_sizes=pyramid_rule(depth, dim_latente+clases, 1)
+    latent_input = Input(shape=dim_latente)
+    class_input = Input(shape=clases)
+    concated_input = tf.keras.layers.concatenate([latent_input, class_input])
+    model = Sequential()
+    model.add(Dense(layer_sizes[0], input_dim=dim_latente+clases))
+    model.add(LeakyReLU(alpha=0.2))
+    for i in range(1, depth):
+        model.add(Dense(layer_sizes[i]))
+        model.add(LeakyReLU(alpha=0.2))
+    model.add(Dense(1, activation=keras.activations.sigmoid))
+    output = model(concated_input)
+    return keras.Model([latent_input, class_input], output)
+
 # https://www.pyimagesearch.com/2019/02/04/keras-multiple-inputs-and-mixed-data/
 def build_branched_class_discriminator(dim_latente:int, clases:int, depth = 2, width=1000) -> Model:
     """
