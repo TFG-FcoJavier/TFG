@@ -13,7 +13,7 @@ from lib.utilities import mkfolders, unpickle
 from lib.genEJ import onehotify, true_sampler
 
 
-def sample_imgs(dataset:dict, model:Model, epoch:int, nclases:int, sample_size=5, save_imgs=True, show=False, ruta="Resultados/pruebasAAE", nombre="", title=""):
+def sample_imgs(dataset:dict, model:Model, epoch:int, nclases:int, sample_size=5, seed=2022, save_imgs=True, show=False, ruta="Resultados/pruebasAAE", destination="/Output/Regeneracion", nombre="", title=""):
     """
     Muestra/guarda una comparativa entre imagenes originales y regeneradas por el modelo.\n
     dataset: dataset de donde se quieran tomar las imagenes, debe tener forma {"data":[...], "labels":[...]}\n 
@@ -27,8 +27,10 @@ def sample_imgs(dataset:dict, model:Model, epoch:int, nclases:int, sample_size=5
     nombre: nombre descriptivo\n 
     title: titulo de la imagen
     """
+    # Random generator con semilla por consistencia
+    rng = np.random.default_rng(seed)
     # Tomamos sample_size imagenes de muestra
-    ids = np.random.randint(0,dataset["data"].shape[0], sample_size)
+    ids = rng.integers(0,dataset["data"].shape[0], sample_size)
     set={k:v[ids] for k,v in dataset.items()}
     sample = set["data"]
     if nclases > 1:
@@ -51,7 +53,7 @@ def sample_imgs(dataset:dict, model:Model, epoch:int, nclases:int, sample_size=5
         for j in i:
             j.axis("off")
     if save_imgs:
-        ruta+="/Output/Regeneracion"
+        ruta+=destination
         mkfolders(ruta)
         savefile= ruta+"/"+nombre+"generationCIFAR10_e%d.jpg" % (epoch)
         f.savefig(savefile)
