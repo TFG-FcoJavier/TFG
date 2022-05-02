@@ -9,7 +9,7 @@ from math import ceil
 from timeit import default_timer as timer
 
 from lib.genEJ import *
-from lib.muestreo import generate_samples
+from lib.muestreo import generate_samples, sample_imgs
 
 def fit_AAE_twoPhased(dim_latente:int, aae:tuple, dataset:dict, epochs=12, batch_size=100, sample_interval=100, ruta="Resultados/pruebasAAE", nombre="pAAE", verbose=True,
             truth=true_sampler, truth_kwargs={}, falsehood=fake_sampler) -> dict:
@@ -32,9 +32,9 @@ def fit_AAE_twoPhased(dim_latente:int, aae:tuple, dataset:dict, epochs=12, batch
     elements = len(dataset["data"])
     totalSteps = ceil(elements/batch_size)
 
-    dataset = tf.data.Dataset.from_tensor_slices(dataset)
-    dataset = dataset.shuffle(elements, seed=2022)
-    dataset = dataset.batch(batch_size)
+    tfdataset = tf.data.Dataset.from_tensor_slices(dataset)
+    tfdataset = tfdataset.shuffle(elements, seed=2022)
+    tfdataset = tfdataset.batch(batch_size)
 
     history = {
         "loss":{
@@ -57,7 +57,7 @@ def fit_AAE_twoPhased(dim_latente:int, aae:tuple, dataset:dict, epochs=12, batch
 
     for epoch in range(epochs):
         start = timer()
-        for step, imgs in enumerate(dataset):
+        for step, imgs in enumerate(tfdataset):
             falsehood_params = {"imgs":imgs, "encoder":encoder}
             falsehood_params.update(truth_kwargs)
             #Espacios latentes "reales" y "falsos" para el discriminador
@@ -71,7 +71,10 @@ def fit_AAE_twoPhased(dim_latente:int, aae:tuple, dataset:dict, epochs=12, batch
 
             # entrenamos al autoencoder
             if "nclases" in truth_kwargs:
-                imgs["labels"]=onehotify(imgs["labels"], truth_kwargs["nclases"])
+                nclases=truth_kwargs["nclases"]
+                imgs["labels"]=onehotify(imgs["labels"], nclases)
+            else:
+                nclases=0
             aae_loss = a_autoencoder.train_on_batch(imgs,[imgs["data"], valid]) # El resultado debe ser la imagen sin las etiquetas
             
             # Guardamos el progreso            
@@ -90,6 +93,7 @@ def fit_AAE_twoPhased(dim_latente:int, aae:tuple, dataset:dict, epochs=12, batch
             print("")
         # Hacemos una muestra visual
         generate_samples(dim_latente, decoder, epoch, ruta=ruta, nombre=nombre, show=((epoch+1)==epochs))
+        sample_imgs(dataset,a_autoencoder,epoch, nclases, ruta=ruta, destination="/Output/Progreso", nombre=nombre, title="Progreso regeneracion "+nombre)
     return history
 
 def fit_AAE_threePhased(dim_latente:int, aae:tuple, dataset:dict, epochs=12, batch_size=100, sample_interval=100, ruta="Resultados/pruebasAAE", nombre="pAAE", verbose=True,
