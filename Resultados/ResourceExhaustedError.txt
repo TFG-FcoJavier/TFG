@@ -1,0 +1,66 @@
+---------------------------------------------------------------------------
+ResourceExhaustedError                    Traceback (most recent call last)
+~\AppData\Local\Temp/ipykernel_8040/273911000.py in <module>
+      3 disc = (build_discriminator_P ,"pyramid_disc", {"depth":3}, {"truth":true_sampler, "truth_kwargs":{}, "falsehood":fake_sampler})
+      4 model_name = "DENSE"
+----> 5 tryModel(loss_weights=loss_weigths, enc=enc, dec=dec, disc=disc, dim_latente=dim_latente, model_name=model_name, mixture_data={"override":False, "nombre":str(dim_latente)+"cluster"})
+
+~\AppData\Local\Temp/ipykernel_8040/3387728243.py in tryModel(model_name, assemble_AAE, loss_weights, fit_AAE, enc, dec, ae_loss, disc, disc_loss, dim_latente, mixture_data, save)
+     30     aae = assemble_AAE(dim_latente, img_shape, enc_model = enc[0], enc_kwargs=enc[2], dec_model = dec[0], dec_kwargs=dec[2], disc_model = disc[0], disc_kwargs=disc[2], ae_loss=ae_loss[0], disc_loss=disc_loss[0], loss_weights=loss_weights)
+     31     # Entrenamiento
+---> 32     history = fit_AAE(aae=aae, dim_latente=dim_latente, dataset=X_train, epochs = epochs, ruta = ruta, **fit_settings)
+     33     # Obtenemos informacion del numero de clases para mostrar resultados, si no hay se intenta generar una mixtura para mas tarde
+     34     clases=0
+
+c:\Users\bitde\source\TFG\lib\entrenamiento.py in fit_AAE_twoPhased(dim_latente, aae, dataset, epochs, batch_size, sample_interval, ruta, nombre, verbose, truth, truth_kwargs, falsehood)
+     73             if "nclases" in truth_kwargs:
+     74                 imgs["labels"]=onehotify(imgs["labels"], truth_kwargs["nclases"])
+---> 75             aae_loss = a_autoencoder.train_on_batch(imgs,[imgs["data"], valid]) # El resultado debe ser la imagen sin las etiquetas
+     76 
+     77             # Guardamos el progreso
+
+~\AppData\Local\Programs\Python\Python38\lib\site-packages\keras\engine\training.py in train_on_batch(self, x, y, sample_weight, class_weight, reset_metrics, return_dict)
+   1898                                                     class_weight)
+   1899       self.train_function = self.make_train_function()
+-> 1900       logs = self.train_function(iterator)
+   1901 
+   1902     logs = tf_utils.sync_to_numpy_or_python_type(logs)
+
+~\AppData\Local\Programs\Python\Python38\lib\site-packages\tensorflow\python\util\traceback_utils.py in error_handler(*args, **kwargs)
+    151     except Exception as e:
+    152       filtered_tb = _process_traceback_frames(e.__traceback__)
+--> 153       raise e.with_traceback(filtered_tb) from None
+    154     finally:
+    155       del filtered_tb
+
+~\AppData\Local\Programs\Python\Python38\lib\site-packages\tensorflow\python\framework\func_graph.py in autograph_handler(*args, **kwargs)
+   1127           except Exception as e:  # pylint:disable=broad-except
+   1128             if hasattr(e, "ag_error_metadata"):
+-> 1129               raise e.ag_error_metadata.to_exception(e)
+   1130             else:
+   1131               raise
+
+ResourceExhaustedError: in user code:
+
+    File "C:\Users\bitde\AppData\Local\Programs\Python\Python38\lib\site-packages\keras\engine\training.py", line 878, in train_function  *
+        return step_function(self, iterator)
+    File "C:\Users\bitde\AppData\Local\Programs\Python\Python38\lib\site-packages\keras\engine\training.py", line 867, in step_function  **
+        outputs = model.distribute_strategy.run(run_step, args=(data,))
+    File "C:\Users\bitde\AppData\Local\Programs\Python\Python38\lib\site-packages\keras\engine\training.py", line 860, in run_step  **
+        outputs = model.train_step(data)
+    File "C:\Users\bitde\AppData\Local\Programs\Python\Python38\lib\site-packages\keras\engine\training.py", line 816, in train_step
+        self.optimizer.minimize(loss, self.trainable_variables, tape=tape)
+    File "C:\Users\bitde\AppData\Local\Programs\Python\Python38\lib\site-packages\keras\optimizer_v2\optimizer_v2.py", line 532, in minimize
+        return self.apply_gradients(grads_and_vars, name=name)
+    File "C:\Users\bitde\AppData\Local\Programs\Python\Python38\lib\site-packages\keras\optimizer_v2\optimizer_v2.py", line 639, in apply_gradients
+        self._create_all_weights(var_list)
+    File "C:\Users\bitde\AppData\Local\Programs\Python\Python38\lib\site-packages\keras\optimizer_v2\optimizer_v2.py", line 830, in _create_all_weights
+        self._create_slots(var_list)
+    File "C:\Users\bitde\AppData\Local\Programs\Python\Python38\lib\site-packages\keras\optimizer_v2\adam.py", line 117, in _create_slots
+        self.add_slot(var, 'm')
+    File "C:\Users\bitde\AppData\Local\Programs\Python\Python38\lib\site-packages\keras\optimizer_v2\optimizer_v2.py", line 916, in add_slot
+        weight = tf.Variable(
+    File "C:\Users\bitde\AppData\Local\Programs\Python\Python38\lib\site-packages\keras\initializers\initializers_v2.py", line 144, in __call__
+        return tf.zeros(shape, dtype)
+
+    ResourceExhaustedError: OOM when allocating tensor with shape[4000,4000] and type float on /job:localhost/replica:0/task:0/device:GPU:0 by allocator GPU_0_bfc [Op:Fill]

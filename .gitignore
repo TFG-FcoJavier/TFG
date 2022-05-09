@@ -3,20 +3,20 @@
 *.rar
 
 # Modelos entrenados
-*.h5
+#*.h5
 
 # Imagenes generadas durante el entrenamiento
-*.png
+#*.png
 
 # Datasets (MEGA)
 /Input/**
 
-#Resultados (MEGA)
-/Resultados/**
+#Resultados (Antiguos)
+/Resultados/pruebasAAE/**
 
 # Configuracion de otra aplicacion de sincronización
 *.ini
-/Rubbish/**
+**/Rubbish/**
 
 # Archivos compilados
 __pycache__/
